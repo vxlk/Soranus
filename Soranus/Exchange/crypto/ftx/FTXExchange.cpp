@@ -5,14 +5,7 @@
 FTXExchange::FTXExchange(void) {
 	// todo: abstract out to json
 	this->AddModulePath("C:\\Users\\small\\Desktop\\Soranus\\Soranus\\Exchange\\crypto\\ftx");
-
-	// hardcoded
-	char fileName[] = "C:\\Users\\small\\Desktop\\Soranus\\Soranus\\Exchange\\crypto\\ftx\\ftx_api_test.py";
-	auto fp = _Py_fopen(fileName, "r");
-	PyRun_SimpleFileEx(fp, fileName, 0);
 	
-	// PyRun_SimpleFile(fp, fileName);
-
 	m_pModule = PyImport_Import(m_pModuleName);
 	
 	if (m_pModule)
