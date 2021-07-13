@@ -1,5 +1,4 @@
-#ifndef THREAD_POOL_H
-#define THREAD_POOL_H
+#pragma once
 
 #include <vector>
 #include <queue>
@@ -13,12 +12,41 @@
 
 class ThreadPool {
 public:
-    ThreadPool(size_t);
+    ThreadPool() { init(1); }
+    ThreadPool(size_t threads) { init(threads); }
+    ~ThreadPool();
+    // object is move only
+    ThreadPool& operator=(ThreadPool&& other) noexcept {
+        other.queue_mutex.lock();
+
+        // Guard self assignment
+        if (this == &other)
+            return *this;
+                    
+        this->workers = std::exchange(other.workers, {});
+        this->tasks = std::exchange(other.tasks, {});
+        other.condition.notify_all();
+        this->stop = std::exchange(other.stop, true);
+
+        other.queue_mutex.unlock();
+        return *this;
+    }
+    ThreadPool(ThreadPool&& other) noexcept {
+        other.queue_mutex.lock();
+        this->tasks = std::move(other.tasks);
+        this->workers = std::move(other.workers);
+        other.condition.notify_all();
+        this->stop = std::exchange(other.stop, true);
+        other.queue_mutex.unlock();
+    }
+
     template<class F, class... Args>
     auto enqueue(F&& f, Args&&... args) 
         -> std::future<typename std::result_of<F(Args...)>::type>;
-    ~ThreadPool();
+    void addThread();
+    void removeThreadGentle();
 private:
+    void init(size_t threads);
     // need to keep track of threads so we can join them
     std::vector< std::thread > workers;
     // the task queue
@@ -29,24 +57,22 @@ private:
     std::condition_variable condition;
     bool stop;
 };
- 
-// the constructor just launches some amount of workers
-inline ThreadPool::ThreadPool(size_t threads)
-    :   stop(false)
-{
-    for(size_t i = 0;i<threads;++i)
+
+void ThreadPool::init(size_t threads) {
+    this->stop = false;
+    for (size_t i = 0; i < threads; ++i)
         workers.emplace_back(
             [this]
             {
-                for(;;)
+                for (;;)
                 {
                     std::function<void()> task;
 
                     {
                         std::unique_lock<std::mutex> lock(this->queue_mutex);
                         this->condition.wait(lock,
-                            [this]{ return this->stop || !this->tasks.empty(); });
-                        if(this->stop && this->tasks.empty())
+                            [this] { return this->stop || !this->tasks.empty(); });
+                        if (this->stop && this->tasks.empty())
                             return;
                         task = std::move(this->tasks.front());
                         this->tasks.pop();
@@ -55,7 +81,7 @@ inline ThreadPool::ThreadPool(size_t threads)
                     task();
                 }
             }
-        );
+            );
 }
 
 // add new work item to the pool
@@ -83,6 +109,41 @@ auto ThreadPool::enqueue(F&& f, Args&&... args)
     return res;
 }
 
+void ThreadPool::addThread() {
+    workers.emplace_back(
+        [this]
+        {
+            for (;;)
+            {
+                std::function<void()> task;
+
+                {
+                    std::unique_lock<std::mutex> lock(this->queue_mutex);
+                    this->condition.wait(lock,
+                        [this] { return this->stop || !this->tasks.empty(); });
+                    if (this->stop && this->tasks.empty())
+                        return;
+                    task = std::move(this->tasks.front());
+                    this->tasks.pop();
+                }
+
+                task();
+            }
+        }
+    );
+}
+
+void ThreadPool::removeThreadGentle() {
+    // first look for one who is not working ...
+    for (auto&& thread : workers)
+        if (thread.joinable()) {
+            thread.join();
+            return;
+        }
+    // else just wait on the first one yolo ...
+    workers[0].join();
+}
+
 // the destructor joins all threads
 inline ThreadPool::~ThreadPool()
 {
@@ -94,5 +155,3 @@ inline ThreadPool::~ThreadPool()
     for(std::thread &worker: workers)
         worker.join();
 }
-
-#endif

@@ -7,3 +7,10 @@
 struct SoranusModule {
 	inline static ThreadModule threadModule;
 };
+
+// Show the cluster that this component is operating off of
+ThreadWrapper RentsThread(const char* name) {
+	return SoranusModule::threadModule.Has(name) ? 
+		   SoranusModule::threadModule.Get(name) : 
+		   SoranusModule::threadModule.AddThread(name);
+}
