@@ -10,6 +10,8 @@
 #include <functional>
 #include <stdexcept>
 
+// todo: make adding workers thread safe
+
 class ThreadPool {
 public:
     ThreadPool() { init(1); }
@@ -45,6 +47,13 @@ public:
         -> std::future<typename std::result_of<F(Args...)>::type>;
     void addThread();
     void removeThreadGentle();
+    size_t numWorkers() const { return workers.size(); }
+    size_t numTasks() { 
+        queue_mutex.lock(); 
+        auto n = tasks.size(); 
+        queue_mutex.unlock(); 
+        return n; 
+    }
 private:
     void init(size_t threads);
     // need to keep track of threads so we can join them

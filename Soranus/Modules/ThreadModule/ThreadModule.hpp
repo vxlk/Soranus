@@ -12,6 +12,7 @@
 // or a random thread <- (due for a better implementation at a later date?)
 struct ThreadWrapper {
 	ThreadWrapper(ThreadPool& t, const char* n) : pool(t), threadName(n) {}
+	ThreadWrapper(ThreadPool&& t, const char* n) : pool(t), threadName(n) {}
 	ThreadPool& pool;
 	const char* threadName;
 };
@@ -20,15 +21,30 @@ struct ThreadWrapper {
 class ThreadModule {
 public:
 	explicit ThreadModule();
-
+	
 	// Add a thread to the thread map (by name)
 	ThreadWrapper AddThread(const char* name);
 	// Remove a thread from the thread map (by name)
 	void RemoveThread(const char* name);
 	// Get a thread from the thread map (by name)
-	ThreadWrapper Get(const char* name);
-
-	bool Has(const char* name) { return this->threadMap.find(name) != this->threadMap.end(); }
+	ThreadWrapper Get(const char* name) const;
+	// Check if this pool has a thread by name
+	bool Has(const char* name) const { return this->threadMap.find(name) != this->threadMap.end(); }
+	// How many threads are open
+	constexpr unsigned int NumberOfOpenThreads() { return this->numOpenThreads; }
+	// Total number of threads set to be allowed to be opened at one time on this system
+	constexpr unsigned int TotalThreadsAllowedInPool() { return this->numTotalThreads; }
+	// Number of available threads to be opened
+	constexpr unsigned int NumberOfAvailableThreads() { return this->numTotalThreads - this->numOpenThreads; }
+	// Number of jobs in queue for thread of given name
+	size_t NumberOfJobsInQueue(const char* name) const {
+		this->Has(name) ? this->Get(name).pool.numTasks() : 0;
+	}
+	// Number of threads in a given cluster given name
+	// todo: make this thread safe before using!!!!!
+	size_t NumberOfThreadsUnderAlias(const char* name) const {
+		this->Has(name) ? this->Get(name).pool.numWorkers() : 0;
+	}
 
 	// Add a function to the list of tasks for a specific thread given by name
 	// (default name is the general thread provided)
