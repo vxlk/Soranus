@@ -29,13 +29,13 @@ ThreadWrapper ThreadModule::AddThread(const char* name) {
 
 void ThreadModule::RemoveThread(const char* name) {
 	auto thread = this->threadMap.find(name);
-	assert(thread != this->threadMap.end(), "Cannot remove a thread that has never been added...");
+	assert(thread != this->threadMap.end());
 	this->threadMap.erase(name);
 	numOpenThreads--;
 }
 
 ThreadWrapper ThreadModule::Get(const char* name) const {
 	auto thread = this->threadMap.find(name);
-	assert(thread != this->threadMap.end(), "Cannot get a thread that does not exist...");
+	assert(thread != this->threadMap.end());
 	return ThreadWrapper(const_cast<ThreadPool&>(thread->second), name);
 }

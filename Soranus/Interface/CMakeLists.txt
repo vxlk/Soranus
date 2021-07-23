@@ -7,6 +7,6 @@ set(CMAKE_CXX_STANDARD 17)
 
 # Add interface files here
 add_library(Interfaces
-            INTERFACE
-    "ISoranus.hpp"
+INTERFACE
+"ISoranus.hpp"
 )

@@ -66,7 +66,7 @@ public:
 
 	~ThreadModule() = default;
 private:
-	constexpr void CheckIfCanAddThread() { assert(numOpenThreads < numTotalThreads, "Cannot add more threads than available"); }
+	constexpr void CheckIfCanAddThread() { assert(numOpenThreads < numTotalThreads); }
 	std::map< std::string, ThreadPool > threadMap;
 	unsigned int numOpenThreads = 0;
 	unsigned int numTotalThreads = 0;

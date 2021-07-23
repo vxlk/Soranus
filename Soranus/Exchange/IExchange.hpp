@@ -3,7 +3,7 @@ class IExchange {
 public:
 	virtual ~IExchange() = default;
 	// Return the name of the exchange
-	virtual const const char* Name() const = 0;
+	virtual const char* Name() const = 0;
 
 	// can these be const if they call python?
 
