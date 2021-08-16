@@ -19,12 +19,20 @@ add_executable (Soranus
 # --- sources --- #
 )
 
+#set_property(TARGET Soranus PROPERTY CXX_STANDARD 20)
+
 target_include_directories(Soranus PUBLIC 
 ${CMAKE_CURRENT_SOURCE_DIR}
+# Module include directories
+${CMAKE_CURRENT_SOURCE_DIR}/Modules
+${CMAKE_CURRENT_SOURCE_DIR}/Modules/ThreadModule
+${CMAKE_CURRENT_SOURCE_DIR}/Modules/PluginModule
+${CMAKE_CURRENT_SOURCE_DIR}/Modules/SoranusModule
 )
 
 target_link_libraries(Soranus PUBLIC 
 FTXExchange
+SoranusModule
 )
 
 # TODO: Add tests and install targets if needed.

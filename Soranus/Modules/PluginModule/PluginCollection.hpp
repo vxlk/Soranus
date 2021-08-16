@@ -28,11 +28,33 @@ public:
 	}
 
 	template <class T>
-	void RegisterPlugin(T pluginType) {}
+	void RegisterPlugin() {
+		T pluginType;
+		m_registeredPlugins.push_back(std::move(pluginType));
+	}
 	template <class T>
-	void LoadPlugin(T pluginType) {}
+	void LoadPlugin() {
+		T pluginType;
+		if (auto p = this->FindRegisteredPluginT<T>(pluginType) == nullptr)
+			this->RegisterPlugin(p);
+		m_loadedPlugins.push_back(std::move(pluginType));
+	}
 
 private:
+	template <typename T>
+	IPlugin* FindLoadedPluginT(T t) {
+		for (auto&& plugin : m_loadedPlugins)
+			if (auto p = std::dynamic_pointer_cast<T>(plugin))
+				return p;
+		return nullptr;
+	}
+	template <typename T>
+	IPlugin* FindRegisteredPluginT(T t) {
+		for (auto&& plugin : m_registeredPlugins)
+			if (auto p = std::dynamic_pointer_cast<T>(plugin))
+				return p;
+		return nullptr;
+	}
 	std::vector<std::unique_ptr<IPlugin>> m_loadedPlugins;
 	std::vector<std::unique_ptr<IPlugin>> m_registeredPlugins;
 };

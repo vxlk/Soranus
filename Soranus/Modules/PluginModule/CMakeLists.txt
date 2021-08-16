@@ -10,6 +10,7 @@ add_library(PluginModule
 "IPlugin.hpp"
 "PluginCollection.hpp"
 "FeatureConfiguration.hpp"
+"PluginModule.hpp"
 # --- includes --- #
 
 # --- sources --- #

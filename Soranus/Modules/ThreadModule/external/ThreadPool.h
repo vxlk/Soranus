@@ -10,6 +10,8 @@
 #include <functional>
 #include <stdexcept>
 
+#include <iostream>
+
 // todo: make adding workers thread safe
 
 class ThreadPool {
@@ -19,34 +21,49 @@ public:
     ~ThreadPool();
     // object is move only
     ThreadPool& operator=(ThreadPool&& other) noexcept {
-        other.queue_mutex.lock();
+        
+        //std::unique_lock<std::mutex> otherLock(other.queue_mutex);
+        //std::unique_lock<std::mutex> thisLock(this->queue_mutex);
 
         // Guard self assignment
-        if (this == &other)
+        if (this == &other) {
             return *this;
-                    
+        }
+
+        std::cout << "Trying to copy a threadpool! not supported correctly and may result in UB";
+
+        /*
         this->workers = std::exchange(other.workers, {});
         this->tasks = std::exchange(other.tasks, {});
         other.condition.notify_all();
         this->stop = std::exchange(other.stop, true);
+        */
 
-        other.queue_mutex.unlock();
+        //this->workers = std::move(other.workers);
+        //this->tasks = std::move(other.tasks);
+        
+        other.stop = true;
+        other.condition.notify_all();
+
         return *this;
     }
     ThreadPool(ThreadPool&& other) noexcept {
-        other.queue_mutex.lock();
+        std::cout << "Trying to copy a threadpool! not supported correctly and may result in UB";
+        /*
+        std::unique_lock<std::mutex> otherLock(other.queue_mutex);
+        std::unique_lock<std::mutex> thisLock(this->queue_mutex);
         this->tasks = std::move(other.tasks);
         this->workers = std::move(other.workers);
         other.condition.notify_all();
-        this->stop = std::exchange(other.stop, true);
-        other.queue_mutex.unlock();
+        this->stop = std::exchange(other.stop, true);        
+        */
     }
 
     template<class F, class... Args>
     auto enqueue(F&& f, Args&&... args) 
         -> std::future<typename std::result_of<F(Args...)>::type>;
-    void addThread();
-    void removeThreadGentle();
+    inline void addThread();
+    inline void removeThreadGentle();
     size_t numWorkers() const { return workers.size(); }
     size_t numTasks() { 
         queue_mutex.lock(); 
@@ -55,7 +72,7 @@ public:
         return n; 
     }
 private:
-    void init(size_t threads);
+    inline void init(size_t threads);
     // need to keep track of threads so we can join them
     std::vector< std::thread > workers;
     // the task queue
@@ -67,7 +84,7 @@ private:
     bool stop;
 };
 
-void ThreadPool::init(size_t threads) {
+inline void ThreadPool::init(size_t threads) {
     this->stop = false;
     for (size_t i = 0; i < threads; ++i)
         workers.emplace_back(
@@ -118,7 +135,7 @@ auto ThreadPool::enqueue(F&& f, Args&&... args)
     return res;
 }
 
-void ThreadPool::addThread() {
+inline void ThreadPool::addThread() {
     workers.emplace_back(
         [this]
         {
@@ -142,7 +159,7 @@ void ThreadPool::addThread() {
     );
 }
 
-void ThreadPool::removeThreadGentle() {
+inline void ThreadPool::removeThreadGentle() {
     // first look for one who is not working ...
     for (auto&& thread : workers)
         if (thread.joinable()) {
@@ -162,5 +179,6 @@ inline ThreadPool::~ThreadPool()
     }
     condition.notify_all();
     for(std::thread &worker: workers)
-        worker.join();
+        if (worker.joinable())
+            worker.join();
 }

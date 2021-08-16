@@ -11,7 +11,7 @@ add_library(SoranusModule
 # --- includes --- #
 
 # --- sources --- #
-SoranusModule.cpp
+"SoranusModule.cpp"
 # --- sources --- #
 )
 
@@ -22,4 +22,5 @@ ${CMAKE_CURRENT_SOURCE_DIR}/../
 
 target_link_libraries(SoranusModule PUBLIC 
 ThreadModule
+PluginModule
 )

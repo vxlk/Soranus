@@ -9,4 +9,7 @@ set(CMAKE_CXX_STANDARD 17)
 add_library(Interfaces
 INTERFACE
 "ISoranus.hpp"
+"IUI.hpp"
+"IRepository.hpp"
+"IScene.hpp"
 )
