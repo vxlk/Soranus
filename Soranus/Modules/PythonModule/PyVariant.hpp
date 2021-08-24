@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 
+// todo: make an actual pyvariant class
+
 namespace python {
 namespace pyvariant {
 static double Double(const CPyObject& obj) {

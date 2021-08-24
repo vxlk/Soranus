@@ -3,12 +3,15 @@
 #include "IPlugin.hpp"
 
 #include <memory>
+#include <mutex>
 
 // A container of plugins!
 class PluginCollection {
 public:
-	using iterator = std::vector<std::unique_ptr<IPlugin>>::iterator;
-	using const_iterator = std::vector<std::unique_ptr<IPlugin>>::const_iterator;
+	using plugin_list_t = std::vector<std::unique_ptr<IPlugin>>;
+	using iterator = plugin_list_t::iterator;
+	using const_iterator = plugin_list_t::const_iterator;
+	
 	iterator begin() { return this->m_loadedPlugins.begin(); }
 	iterator end() { return this->m_loadedPlugins.end(); }
 
@@ -57,4 +60,5 @@ private:
 	}
 	std::vector<std::unique_ptr<IPlugin>> m_loadedPlugins;
 	std::vector<std::unique_ptr<IPlugin>> m_registeredPlugins;
+	std::mutex m_pluginListMutex;
 };

@@ -3,6 +3,7 @@
 #
 cmake_minimum_required (VERSION 3.8)
 
+# All modules use at least c++17
 set(CMAKE_CXX_STANDARD 17)
 
 add_library(Modules
