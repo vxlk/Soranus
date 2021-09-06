@@ -11,11 +11,13 @@ add_library(PluginModule
 "PluginCollection.hpp"
 "FeatureConfiguration.hpp"
 "PluginModule.hpp"
+"WinPlugin.hpp"
 # --- includes --- #
 
 # --- sources --- #
 "PluginCollection.cpp"
 "FeatureConfiguration.cpp"
+"WinPlugin.cpp"
 # --- sources --- #
 )
 

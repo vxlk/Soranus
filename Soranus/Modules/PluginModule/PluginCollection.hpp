@@ -15,6 +15,9 @@ public:
 	iterator begin() { return this->m_loadedPlugins.begin(); }
 	iterator end() { return this->m_loadedPlugins.end(); }
 
+	PluginCollection() noexcept = default;
+	~PluginCollection() noexcept = default;
+
 	template <class T>
 	T* FindPluginT(T pluginType) {
 		for (auto&& plugin : m_plugins)

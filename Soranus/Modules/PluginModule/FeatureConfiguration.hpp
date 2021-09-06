@@ -4,6 +4,8 @@
 
 #include <vector>
 
+// Will be important in the future, but for now we will take a load if available approach
+
 struct Feature {
 	std::vector<const char*> requestedRegisters;
 	std::vector<const char*> requestedLoads;
@@ -16,6 +18,6 @@ struct Feature {
 class FeatureConfigurationProcessor {
 	Feature m_currentConfiguration;
 public:
-	bool Process(Feature feature, PluginCollection collection);
+	bool Process(const Feature& feature, const PluginCollection& collection);
 	const Feature& Configuration() const { return m_currentConfiguration; }
 };
