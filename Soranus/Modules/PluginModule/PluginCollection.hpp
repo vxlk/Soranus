@@ -63,5 +63,6 @@ private:
 	}
 	std::vector<std::unique_ptr<IPlugin>> m_loadedPlugins;
 	std::vector<std::unique_ptr<IPlugin>> m_registeredPlugins;
+	std::vector<std::string> m_filePathsToSearch; //todo: not using!
 	std::mutex m_pluginListMutex;
 };
